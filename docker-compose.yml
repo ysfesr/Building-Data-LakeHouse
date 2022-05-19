@@ -1,0 +1,111 @@
+version: "3.3"
+services:
+  spark-master:
+    image: cluster-apache-spark:3.1.1  # docker build -t cluster-apache-spark:3.1.1 ./Dockerfiles/spark
+    container_name: master
+    ports:
+      - "9090:8080"
+      - "7077:7077"
+    volumes:
+       - ./workspace:/opt/workspace
+    env_file:
+      - ./spark.env
+    environment:
+      - SPARK_LOCAL_IP=spark-master
+      - SPARK_WORKLOAD=master
+      - PATH=/usr/local/openjdk-11/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/spark/bin:/opt/spark/sbin
+    
+  spark-worker-a:
+    image: cluster-apache-spark:3.1.1
+    container_name: worker-a
+    ports:
+      - "9091:8080"
+      - "7000:7000"
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
+      - SPARK_WORKLOAD=worker
+      - SPARK_LOCAL_IP=spark-worker-a
+    volumes:
+       - ./workspace:/opt/workspace
+  spark-worker-b:
+    image: cluster-apache-spark:3.1.1
+    container_name: worker-b
+    ports:
+      - "9092:8080"
+      - "7001:7000"
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
+      - SPARK_WORKLOAD=worker
+      - SPARK_LOCAL_IP=spark-worker-b
+    volumes:
+        - ./workspace:/opt/workspace
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    restart: always
+    environment:
+        - MINIO_ROOT_USER=admin
+        - MINIO_ROOT_PASSWORD=123456789
+
+    ports:
+        - "9001:9001"
+        - "9000:9000"
+    volumes:
+        - ./minio/data:/data
+    command: server /data --console-address ":9001" 
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+        interval: 30s
+        timeout: 30s
+        retries: 3
+  db:
+    image: postgres:14.2
+    container_name: postgres
+    restart: always
+    volumes:
+        - ./database-data:/var/lib/postgresql/data/
+    environment:
+        POSTGRES_USER: root
+        POSTGRES_PASSWORD: root
+        POSTGRES_DB: test_db
+    ports:
+    - "5432:5432"
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    ports:
+      - 3306:3306
+    environment:
+      USE_S3_STORAGE: 0
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: metastore_db
+
+  hive-metastore:
+    build: ./Dockerfiles/hive-metastore
+    container_name: hive-metastore
+    restart: unless-stopped
+    ports:
+      - 9083:9083
+  
+  presto:
+    image: presto:0.272.1 # docker build -t presto:0.272.1 ./Dockerfiles/presto
+    container_name: presto
+    volumes:
+      - ./presto-config:/opt/presto/etc/catalog
+    ports:
+    - 8000:8080
