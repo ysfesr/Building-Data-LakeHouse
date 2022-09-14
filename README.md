@@ -54,7 +54,7 @@ docker exec -it master spark-submit --master spark://master:7077 \
 - Spark
 - Minio
 - PostgreSQL
-- Hive
+- Hive Metastore
 - Presto
 - Delta Lake
 
