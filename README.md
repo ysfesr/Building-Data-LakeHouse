@@ -1,7 +1,10 @@
 ﻿# Building Data Lakehouse
 
-Building of a data lakehouse and a data pipeline
+This project is designed to construct a data lakehouse. This data lakehouse will enable organizations to store, manage, and analyze large datasets in a cost-effective, secure, and scalable manner. The data lakehouse will provide a centralized repository for all data, allowing users to easily access and query the data with a unified interface.
 
+Minio will provide distributed object storage to store the data, Delta Lake will provide ACID-compliant transactions for managing the data, Spark will enable distributed computing for analytics, Presto will provide fast SQL queries, and Hive Metastore will provide a unified catalog for the data. This data lakehouse will enable organizations to quickly and easily access and analyze valuable data, allowing them to make better data-driven decisions.
+
+This project aims also to create an Extract, Load, and Transform (ELT) pipeline to ingest data from a Postgres database into our lakehouse. The ELT pipeline will make use of Apache Spark, to extract the data from the Postgres database, load it into the lakehouse, and then transform it into the desired format. Once the data is loaded into the lakehouse, it will be available for downstream analytics and reporting.
 ## Architecture
 
 ![Architecture](/images/1.png "Architecture")
