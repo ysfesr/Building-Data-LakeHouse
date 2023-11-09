@@ -9,7 +9,7 @@ services:
     volumes:
        - ./workspace:/opt/workspace
     env_file:
-      - ./spark.env
+      - ./config.env
     environment:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
